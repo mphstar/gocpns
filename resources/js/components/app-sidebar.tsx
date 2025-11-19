@@ -26,6 +26,26 @@ const mainNavItems: NavItem[] = [
 
 const masterNavItems: NavItem[] = [
     {
+        title: 'Jenis Tryout',
+        url: '/jenis-tryout',
+        icon: LucideLayoutTemplate,
+    },
+    {
+        title: 'Kategori Soal',
+        url: '/kategori',
+        icon: LucideAlignEndVertical,
+    },
+    {
+        title: 'Materi',
+        url: '/materi',
+        icon: LucideBlocks,
+    },
+    {
+        title: 'Bank Soal',
+        url: '/bank-soal',
+        icon: LucideBetweenVerticalStart,
+    },
+    {
         title: 'Pengguna',
         url: '/user',
         icon: LucideUser,

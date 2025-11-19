@@ -1,0 +1,133 @@
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import useKategoriStore from './store';
+import { router } from '@inertiajs/react';
+import { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import type { KategoriRecord } from './types';
+import { useState } from 'react';
+
+const deleteKategori = (id: number) => {
+    router.delete(route('kategori.destroy', id), {
+        preserveScroll: true,
+        onSuccess: () =>
+            toast({
+                title: 'Berhasil',
+                description: 'Kategori dihapus.',
+            }),
+        onError: (errors: Record<string, string>) =>
+            toast({
+                title: 'Gagal menghapus kategori',
+                description: errors.error ?? 'Kategori mungkin sedang digunakan.',
+                variant: 'destructive',
+            }),
+    });
+};
+
+export const columns: ColumnDef<KategoriRecord>[] = [
+    {
+        id: 'select',
+        header: ({ table }) => (
+            <Checkbox
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label="Select all"
+            />
+        ),
+        cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
+        enableSorting: false,
+        enableHiding: false,
+    },
+    {
+        id: 'rowNumber',
+        header: '#',
+        cell: ({ row }) => row.index + 1,
+    },
+    {
+        accessorKey: 'kategori',
+        header: ({ column }) => (
+            <Button variant="ghost" className="gap-1" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Kode
+                <ArrowUpDown className="h-4 w-4" />
+            </Button>
+        ),
+        cell: ({ cell }) => <span className="font-semibold uppercase">{cell.getValue<string>()}</span>,
+    },
+    {
+        accessorKey: 'kepanjangan',
+        header: 'Nama',
+        cell: ({ cell }) => <span className="text-sm text-muted-foreground">{cell.getValue<string>()}</span>,
+    },
+    {
+        accessorKey: 'created_at',
+        header: 'Dibuat',
+        cell: ({ cell }) => <span className="text-sm text-muted-foreground">{new Date(cell.getValue<string>()).toLocaleDateString('id-ID')}</span>,
+    },
+    {
+        id: 'actions',
+        cell: ({ row }) => {
+            const store = useKategoriStore();
+            const [deleteOpen, setDeleteOpen] = useState(false);
+            const record = row.original;
+
+            return (
+                <>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                            <DropdownMenuItem
+                                onSelect={() => {
+                                    store.setCurrentRow(record);
+                                    store.setDialog('update');
+                                    (document.activeElement as HTMLElement | null)?.blur();
+                                    requestAnimationFrame(() => setTimeout(() => store.setOpen(true), 0));
+                                }}
+                            >
+                                Edit Data
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => requestAnimationFrame(() => setDeleteOpen(true))}>Hapus Data</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                        <AlertDialogContent onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()}>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Hapus kategori?</AlertDialogTitle>
+                                <AlertDialogDescription>Tindakan ini tidak dapat dibatalkan.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => {
+                                        deleteKategori(record.id);
+                                        setDeleteOpen(false);
+                                    }}
+                                >
+                                    Hapus
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
+            );
+        },
+    },
+];

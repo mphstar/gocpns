@@ -1,5 +1,6 @@
 import { Toaster } from '@/components/ui/toaster';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
+import { toast } from '@/hooks/use-toast';
 import { SharedData, type BreadcrumbItem } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
@@ -10,7 +11,7 @@ interface AppLayoutProps {
 }
 
 export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => {
-    const { pengaturan } = usePage<SharedData>().props;
+    const { pengaturan, flash } = usePage<SharedData & { flash?: { success?: string; error?: string } }>().props;
 
     const { favicon } = pengaturan;
 
@@ -34,6 +35,15 @@ export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => {
 
         document.head.appendChild(link);
     }, [favicon]);
+
+    useEffect(() => {
+        if (flash?.success) {
+            toast({ title: 'Berhasil', description: flash.success });
+        }
+        if (flash?.error) {
+            toast({ title: 'Terjadi Kesalahan', description: flash.error, variant: 'destructive' });
+        }
+    }, [flash?.success, flash?.error]);
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>

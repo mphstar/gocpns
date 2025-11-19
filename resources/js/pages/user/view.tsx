@@ -2,11 +2,12 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import useProductStore from '@/stores/useProduct';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { UserType, columns } from './columns';
 import { DataTable } from './data-table';
 import FormDialog from './form';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -18,6 +19,25 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Product() {
     const store = useProductStore();
     const { data } = usePage().props as unknown as { data: UserType[] };
+
+    const handleBulkDelete = (rows: UserType[]) => {
+        const payloadRequest = rows.map((row) => ({ id: row.id }));
+
+        router.post(
+            route('user.delete-multiple'),
+            { data: payloadRequest },
+            {
+                onSuccess: () =>
+                    toast.success('Deleted!', {
+                        description: 'Your user has been deleted.',
+                    }),
+                onError: () =>
+                    toast.error('Error!', {
+                        description: 'Something went wrong.',
+                    }),
+            },
+        );
+    };
 
 
     return (
@@ -43,7 +63,7 @@ export default function Product() {
                         </Button>
                     </div>
                 </div>
-                <DataTable columns={columns} data={data} />
+                <DataTable columns={columns} data={data} onBulkDelete={handleBulkDelete} />
             </div>
         </AppLayout>
     );
