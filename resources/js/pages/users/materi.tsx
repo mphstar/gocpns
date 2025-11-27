@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, Search } from 'lucide-react';
 import { UserNav } from './user-nav';
+import { useEffect, useState } from 'react';
 
 type MateriItem = {
     id: number;
@@ -25,16 +26,18 @@ type PageProps = {
     };
     categories: Array<{ id: number; kategori: string }>;
     selectedKategoriId?: number | null;
+    search?: string;
 };
 
 const Materi = () => {
-    const { materi, categories, selectedKategoriId } = usePage<PageProps>().props;
+    const { materi, categories, selectedKategoriId, search } = usePage<PageProps>().props;
+    const [keyword, setKeyword] = useState(search ?? '');
 
     const onFilterChange = (kategoriId: string) => {
         const payload = kategoriId && kategoriId !== 'all' ? { kategori_id: kategoriId } : {};
         router.get(
             route('app.materi'),
-            payload,
+            { ...payload, search: keyword || undefined },
             {
                 replace: true,
                 preserveScroll: true,
@@ -42,8 +45,20 @@ const Materi = () => {
         );
     };
 
+    useEffect(() => {
+        setKeyword(search ?? '');
+    }, [search]);
+
+    const submitSearch = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        const payload: Record<string, string> = {};
+        if (selectedKategoriId) payload.kategori_id = String(selectedKategoriId);
+        if (keyword.trim()) payload.search = keyword.trim();
+        router.get(route('app.materi'), payload, { replace: true, preserveScroll: true });
+    };
+
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground pb-16 sm:pb-0">
             <Head title="Materi" />
             <UserNav />
 
@@ -63,10 +78,15 @@ const Materi = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <form className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" onSubmit={submitSearch}>
                     <div className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-muted-foreground">
                         <Search className="h-4 w-4" />
-                        <Input className="border-0 shadow-none" placeholder="Cari materi..." disabled />
+                        <Input
+                            className="border-0 shadow-none"
+                            placeholder="Cari materi..."
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                        />
                     </div>
                     <div className="flex items-center gap-2">
                         <Select
@@ -85,8 +105,11 @@ const Materi = () => {
                                 ))}
                             </SelectContent>
                         </Select>
+                        <Button type="submit" variant="outline">
+                            Cari
+                        </Button>
                     </div>
-                </div>
+                </form>
 
                 <div className="grid gap-4 md:grid-cols-2">
                     {materi.data.map((item) => (

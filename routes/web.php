@@ -26,6 +26,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/materi', [UserPageController::class, 'materi'])->name('materi');
         Route::get('/tryout', [UserPageController::class, 'tryout'])->name('tryout');
         Route::get('/riwayat', [UserPageController::class, 'riwayat'])->name('riwayat');
+        Route::get('/riwayat/{hasilTryout}', [UserPageController::class, 'riwayatDetail'])->name('riwayat.show');
+        Route::get('/tryout/{bankSoal}', [UserPageController::class, 'take'])->name('tryout.take');
+        Route::post('/tryout/{hasilTryout}/answer', [UserPageController::class, 'submitAnswer'])->name('tryout.answer');
+        Route::post('/tryout/{hasilTryout}/finish', [UserPageController::class, 'finish'])->name('tryout.finish');
     });
 
     // Redirect legacy admin paths without /admin prefix

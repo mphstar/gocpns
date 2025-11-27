@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\JawabanTryout;
 
 class HasilTryout extends Model
 {
@@ -48,5 +49,10 @@ class HasilTryout extends Model
     public function kategoriResults()
     {
         return $this->hasMany(HasilTryoutKategori::class);
+    }
+
+    public function jawabanTryout()
+    {
+        return $this->hasMany(JawabanTryout::class);
     }
 }

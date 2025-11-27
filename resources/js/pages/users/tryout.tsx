@@ -3,7 +3,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Target, Timer } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Target, Timer, Info } from 'lucide-react';
+import { useState } from 'react';
 import { UserNav } from './user-nav';
 
 type TryoutItem = {
@@ -24,10 +26,19 @@ type PageProps = {
     };
     categories: Array<{ id: number; kategori: string }>;
     selectedKategoriId?: number | null;
+    ongoing?: Record<
+        number,
+        {
+            session_id: number;
+            bank_soal_id: number;
+            judul?: string | null;
+        }
+    >;
 };
 
 const Tryout = () => {
-    const { tryouts, categories, selectedKategoriId } = usePage<PageProps>().props;
+    const { tryouts, categories, selectedKategoriId, ongoing = {} } = usePage<PageProps>().props;
+    const [selected, setSelected] = useState<TryoutItem | null>(null);
 
     const onFilterChange = (kategoriId: string) => {
         const payload = kategoriId && kategoriId !== 'all' ? { kategori_id: kategoriId } : {};
@@ -42,7 +53,7 @@ const Tryout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-screen bg-background text-foreground pb-16 sm:pb-0">
             <Head title="Tryout" />
             <UserNav />
 
@@ -85,37 +96,72 @@ const Tryout = () => {
                             <CardHeader className="space-y-2">
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Target className="h-5 w-5 text-primary" />
-                                    {item.judul}
-                                </CardTitle>
-                                <p className="text-xs text-muted-foreground">{item.jenis ?? 'Tryout'}</p>
-                                {item.kategori?.length > 0 && (
+                                        {item.judul}
+                                    </CardTitle>
+                                    <p className="text-xs text-muted-foreground">{item.jenis ?? 'Tryout'}</p>
+                                    {item.kategori?.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {item.kategori.map((kat) => (
+                                                <Badge key={kat} variant="outline" className="text-xs">
+                                                    {kat}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
+                                </CardHeader>
+                                <CardContent className="flex items-center justify-between text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-2">
+                                        <Timer className="h-4 w-4" />
+                                        <span>{item.durasi ?? '-'} menit</span>
+                                    </div>
+                                    <Button size="sm" onClick={() => setSelected(item)}>
+                                        {ongoing[item.id] ? 'Lanjutkan' : 'Mulai'}
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ))}
+                        {tryouts.data.length === 0 && (
+                            <Card className="md:col-span-3">
+                            <CardContent className="py-6 text-muted-foreground text-sm">Belum ada tryout tersedia.</CardContent>
+                        </Card>
+                    )}
+                </div>
+            </main>
+
+            <AlertDialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <Info className="h-4 w-4 text-primary" />
+                            {selected && ongoing[selected.id] ? 'Lanjutkan Tryout' : 'Konfirmasi Mulai Tryout'}
+                        </AlertDialogTitle>
+                        {selected && (
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                                <p className="text-foreground font-semibold">{selected.judul}</p>
+                                <p>{selected.jenis ?? 'Tryout'}</p>
+                                <p>Durasi: {selected.durasi ?? '-'} menit</p>
+                                {selected.kategori?.length > 0 && (
                                     <div className="flex flex-wrap gap-2">
-                                        {item.kategori.map((kat) => (
+                                        {selected.kategori.map((kat) => (
                                             <Badge key={kat} variant="outline" className="text-xs">
                                                 {kat}
                                             </Badge>
                                         ))}
                                     </div>
                                 )}
-                            </CardHeader>
-                            <CardContent className="flex items-center justify-between text-sm text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                    <Timer className="h-4 w-4" />
-                                    <span>{item.durasi ?? '-'} menit</span>
-                                </div>
-                                <Button size="sm" asChild>
-                                    <Link href="#">Mulai</Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ))}
-                    {tryouts.data.length === 0 && (
-                        <Card className="md:col-span-3">
-                            <CardContent className="py-6 text-muted-foreground text-sm">Belum ada tryout tersedia.</CardContent>
-                        </Card>
-                    )}
-                </div>
-            </main>
+                            </div>
+                        )}
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setSelected(null)}>Batal</AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Link href={selected ? route('app.tryout.take', selected.id) : '#'}>
+                                {selected && ongoing[selected.id] ? 'Lanjutkan' : 'Mulai Sekarang'}
+                            </Link>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

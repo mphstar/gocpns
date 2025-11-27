@@ -3,7 +3,7 @@ import { UserNav } from './user-nav';
 
 const Home = () => {
     return (
-        <div className="w-full min-h-screen flex flex-col bg-[#F1F7FD] dark:bg-[#131414]">
+        <div className="w-full min-h-screen flex flex-col bg-[#F1F7FD] dark:bg-[#131414] pb-16 sm:pb-0">
             <Head title="Beranda Pengguna" />
             <UserNav />
             <div className="max-w-6xl mx-auto w-full px-4 mt-6">
@@ -39,19 +39,21 @@ const Home = () => {
                         </div>
                     </div>
                 </Link>
-                <div className="flex h-full flex-col bg-background overflow-hidden group rounded-lg border shadow-sm">
-                    <img
-                        className="w-full rounded-md h-48 object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
-                        src="/assets/images/history.jpg"
-                        alt="History"
-                    />
-                    <div className="flex h-full flex-col px-4 py-3 pb-6">
-                        <p className="font-medium mt-2">Riwayat Kuis</p>
-                        <p className="text-gray-500 dark:text-gray-300 text-sm">
-                            Lihat dan pelajari kembali jawaban try out yang pernah kamu kerjakan
-                        </p>
+                <Link href="/app/riwayat">
+                    <div className="flex h-full flex-col bg-background overflow-hidden group rounded-lg border shadow-sm">
+                        <img
+                            className="w-full rounded-md h-48 object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
+                            src="/assets/images/history.jpg"
+                            alt="History"
+                        />
+                        <div className="flex h-full flex-col px-4 py-3 pb-6">
+                            <p className="font-medium mt-2">Riwayat Kuis</p>
+                            <p className="text-gray-500 dark:text-gray-300 text-sm">
+                                Lihat dan pelajari kembali jawaban try out yang pernah kamu kerjakan
+                            </p>
+                        </div>
                     </div>
-                </div>
+                </Link>
             </div>
         </div>
     );
