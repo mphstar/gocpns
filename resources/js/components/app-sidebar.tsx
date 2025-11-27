@@ -19,7 +19,7 @@ import AppLogo from './app-logo';
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        url: '/dashboard',
+        url: '/admin/dashboard',
         icon: LayoutGrid,
     },
 ];
@@ -27,27 +27,27 @@ const mainNavItems: NavItem[] = [
 const masterNavItems: NavItem[] = [
     {
         title: 'Jenis Tryout',
-        url: '/jenis-tryout',
+        url: '/admin/jenis-tryout',
         icon: LucideLayoutTemplate,
     },
     {
         title: 'Kategori Soal',
-        url: '/kategori',
+        url: '/admin/kategori',
         icon: LucideAlignEndVertical,
     },
     {
         title: 'Materi',
-        url: '/materi',
+        url: '/admin/materi',
         icon: LucideBlocks,
     },
     {
         title: 'Bank Soal',
-        url: '/bank-soal',
+        url: '/admin/bank-soal',
         icon: LucideBetweenVerticalStart,
     },
     {
         title: 'Pengguna',
-        url: '/user',
+        url: '/admin/user',
         icon: LucideUser,
     },
 ];
@@ -72,7 +72,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href="/admin/dashboard" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

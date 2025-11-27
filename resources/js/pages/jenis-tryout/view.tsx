@@ -10,7 +10,7 @@ import FormDialog from './form';
 import { columns } from './columns';
 import type { JenisTryoutPageProps, JenisTryout } from './types';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Jenis Tryout', href: '/jenis-tryout' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Jenis Tryout', href: '/admin/jenis-tryout' }];
 
 const JenisTryoutPage = () => {
     const store = useJenisTryoutStore();

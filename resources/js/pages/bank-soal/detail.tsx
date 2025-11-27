@@ -20,8 +20,9 @@ import { useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 const BankSoalDetailPage = () => {
-    const { bankSoal, questions } = usePage().props as BankSoalDetailPageProps;
+    const { bankSoal, questions } = usePage().props as unknown as BankSoalDetailPageProps;
     const [questionToDelete, setQuestionToDelete] = useState<DetailBankSoalRecord | null>(null);
+    const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
 
     const deleteQuestion = () => {
         if (!questionToDelete) return;
@@ -39,15 +40,15 @@ const BankSoalDetailPage = () => {
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Bank Soal', href: '/bank-soal' },
-        { title: bankSoal.judul, href: `/bank-soal/${bankSoal.id}/detail` },
+        { title: 'Bank Soal', href: '/admin/bank-soal' },
+        { title: bankSoal.judul, href: `/admin/bank-soal/${bankSoal.id}/detail` },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Kelola Soal - ${bankSoal.judul}`} />
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 px-4">
                 <Card>
                     <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                         <div>
@@ -59,7 +60,7 @@ const BankSoalDetailPage = () => {
                         </div>
                         <div className="flex gap-2">
                             <Button variant="outline" asChild>
-                                <Link href="/bank-soal">Kembali</Link>
+                                <Link href="/admin/bank-soal">Kembali</Link>
                             </Button>
                             <Button asChild>
                                 <Link href={route('bank-soal.detail.create', bankSoal.id)}>
@@ -130,14 +131,18 @@ const BankSoalDetailPage = () => {
                                     </div>
                                     <p className="whitespace-pre-line text-sm">{question.soal}</p>
                                     {question.gambar_soal && (
-                                        <a
-                                            href={`/${question.gambar_soal}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-sm text-primary underline"
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewImage({ src: `/${question.gambar_soal}`, alt: 'Gambar soal' })}
+                                            className="inline-flex max-w-[140px] flex-col gap-2 text-left text-sm text-primary"
                                         >
-                                            Lihat gambar soal
-                                        </a>
+                                            <img
+                                                src={`/${question.gambar_soal}`}
+                                                alt="Gambar soal"
+                                                className="h-20 w-full rounded-md border object-cover"
+                                            />
+                                            <span className="underline">Lihat penuh</span>
+                                        </button>
                                     )}
                                 </div>
                                 <div className="flex gap-2 self-start md:self-auto">
@@ -166,14 +171,20 @@ const BankSoalDetailPage = () => {
                                             </div>
                                             <p className="text-sm whitespace-pre-line">{answer.jawaban}</p>
                                             {answer.gambar_jawaban && (
-                                                <a
-                                                    href={`/${answer.gambar_jawaban}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-xs text-primary underline"
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setPreviewImage({ src: `/${answer.gambar_jawaban}`, alt: `Gambar jawaban ${answer.opsi}` })
+                                                    }
+                                                    className="inline-flex max-w-[120px] flex-col gap-1 text-left text-xs text-primary"
                                                 >
-                                                    Lihat gambar jawaban
-                                                </a>
+                                                    <img
+                                                        src={`/${answer.gambar_jawaban}`}
+                                                        alt={`Gambar jawaban ${answer.opsi}`}
+                                                        className="h-16 w-full rounded border object-cover"
+                                                    />
+                                                    <span className="underline">Lihat penuh</span>
+                                                </button>
                                             )}
                                         </div>
                                     ))}
@@ -183,6 +194,30 @@ const BankSoalDetailPage = () => {
                     ))}
                 </div>
             </div>
+
+            {previewImage && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                    onClick={() => setPreviewImage(null)}
+                    role="presentation"
+                >
+                    <div className="relative max-h-[90vh] max-w-5xl">
+                        <button
+                            type="button"
+                            onClick={() => setPreviewImage(null)}
+                            className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-1 text-xs text-white"
+                        >
+                            Tutup
+                        </button>
+                        <img
+                            src={previewImage.src}
+                            alt={previewImage.alt}
+                            className="max-h-[80vh] max-w-5xl rounded-lg shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                </div>
+            )}
 
             <AlertDialog open={questionToDelete !== null} onOpenChange={(open) => !open && setQuestionToDelete(null)}>
                 <AlertDialogContent>
@@ -201,5 +236,3 @@ const BankSoalDetailPage = () => {
 };
 
 export default BankSoalDetailPage;
-
-

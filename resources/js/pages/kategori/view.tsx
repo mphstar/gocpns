@@ -10,7 +10,7 @@ import KategoriFormDialog from './form';
 import { columns } from './columns';
 import type { KategoriPageProps, KategoriRecord } from './types';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Kategori Soal', href: '/kategori' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Kategori Soal', href: '/admin/kategori' }];
 
 const KategoriPage = () => {
     const store = useKategoriStore();

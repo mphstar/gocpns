@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -11,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { toast } from '@/hooks/use-toast';
 import type { BankSoalDetailPageProps, DetailBankSoalRecord, KategoriOption } from './types';
-import { questionSchema, type QuestionFormValues } from './detail-schemas';
+import { type QuestionFormValues } from './detail-schemas';
 import { BreadcrumbItem } from '@/types';
 
 interface QuestionFormProps {
@@ -40,7 +39,7 @@ const createDefaultAnswers = () =>
         opsi,
         jawaban: '',
         nilai: 0,
-        is_correct: opsi === 'A',
+        is_correct: false,
         gambar_jawaban: null as File | null,
         existing_image: null as string | null,
     }));
@@ -84,15 +83,17 @@ const buildInitialValues = (kategoriOptions: KategoriOption[], question: DetailB
 };
 
 const QuestionFormPage = () => {
-    const { bankSoal, kategoriOptions, question, mode, nextNomor } = usePage().props as unknown as QuestionFormProps;
+    const pageProps = usePage().props as unknown as QuestionFormProps & { errors?: Record<string, string> };
+    const { bankSoal, kategoriOptions, question, mode, nextNomor, errors: backendErrors = {} } = pageProps;
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Bank Soal', href: '/bank-soal' },
+        { title: 'Bank Soal', href: '/admin/bank-soal' },
         { title: bankSoal.judul, href: route('bank-soal.detail', bankSoal.id) },
         { title: mode === 'create' ? 'Tambah Soal' : 'Ubah Soal', href: '#' },
     ];
 
+    const hasBackendErrors = Object.keys(backendErrors).length > 0;
+
     const form = useForm<QuestionFormValues>({
-        resolver: zodResolver(questionSchema),
         defaultValues: buildInitialValues(kategoriOptions, question, nextNomor),
     });
 
@@ -105,6 +106,10 @@ const QuestionFormPage = () => {
     );
 
     useEffect(() => {
+        if (hasBackendErrors) {
+            return;
+        }
+
         form.reset(buildInitialValues(kategoriOptions, question, nextNomor));
         setQuestionPreview((prev) => {
             revokePreview(prev);
@@ -117,7 +122,14 @@ const QuestionFormPage = () => {
                 return formatPreviewPath(existing?.gambar_jawaban ?? null);
             });
         });
-    }, [question, kategoriOptions, nextNomor]);
+    }, [question, kategoriOptions, nextNomor, hasBackendErrors]);
+
+    useEffect(() => {
+        form.clearErrors();
+        Object.entries(backendErrors).forEach(([field, message]) => {
+            form.setError(field as keyof QuestionFormValues, { type: 'server', message });
+        });
+    }, [backendErrors, form]);
 
     useEffect(() => {
         return () => {
@@ -182,19 +194,26 @@ const QuestionFormPage = () => {
         const options = {
             preserveScroll: true,
             forceFormData: true,
+            preserveState: (page: { props?: Record<string, unknown> }) => {
+                const errs = (page.props?.errors ?? {}) as Record<string, unknown>;
+                return Object.keys(errs).length > 0;
+            },
             onSuccess: () => {
+                form.clearErrors();
                 toast({
                     title: 'Berhasil',
                     description: `Soal ${mode === 'create' ? 'ditambahkan' : 'diperbarui'}.`,
                 });
             },
             onError: (errors: Record<string, string>) => {
+                form.clearErrors();
                 Object.entries(errors).forEach(([field, message]) => {
                     form.setError(field as keyof QuestionFormValues, { type: 'server', message });
                 });
+                const firstError = Object.values(errors)[0];
                 toast({
                     title: 'Gagal menyimpan soal',
-                    description: 'Periksa kembali data yang diinput.',
+                    description: firstError ?? 'Periksa kembali data yang diinput.',
                     variant: 'destructive',
                 });
             },
@@ -216,7 +235,7 @@ const QuestionFormPage = () => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${mode === 'create' ? 'Tambah' : 'Ubah'} Soal - ${bankSoal.judul}`} />
-            <div className="mx-auto flex w-full flex-col gap-6">
+            <div className="mx-auto flex w-full flex-col gap-6 px-4">
                 <div className="rounded-2xl border bg-background/80 p-6 shadow-sm">
                     <div className="flex flex-col gap-4 border-b pb-4 md:flex-row md:items-center md:justify-between">
                         <div>

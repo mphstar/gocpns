@@ -98,6 +98,12 @@ class BankSoalController extends Controller
 
     public function destroy(BankSoal $bankSoal)
     {
+        $bankSoal->load('detail.jawaban');
+
+        foreach ($bankSoal->detail as $detail) {
+            $this->purgeDetailWithFiles($detail);
+        }
+
         $bankSoal->delete();
 
         return back()->with('success', 'Bank soal berhasil dihapus.');
@@ -111,7 +117,16 @@ class BankSoalController extends Controller
         ]);
 
         DB::transaction(function () use ($data) {
-            BankSoal::whereIn('id', $data['ids'])->delete();
+            $bankSoalList = BankSoal::with('detail.jawaban')
+                ->whereIn('id', $data['ids'])
+                ->get();
+
+            foreach ($bankSoalList as $bankSoal) {
+                foreach ($bankSoal->detail as $detail) {
+                    $this->purgeDetailWithFiles($detail);
+                }
+                $bankSoal->delete();
+            }
         });
 
         return back()->with('success', 'Bank soal terpilih berhasil dihapus.');
@@ -173,21 +188,24 @@ class BankSoalController extends Controller
 
     public function storeDetail(Request $request, BankSoal $bankSoal)
     {
-        $data = $request->validate([
-            'kategori_id' => 'required|exists:kategori,id',
-            'nomor' => 'required|integer|min:1|unique:detail_bank_soal,nomor,NULL,id,bank_soal_id,' . $bankSoal->id,
-            'soal' => 'required|string',
-            'gambar_soal' => 'nullable|image|max:2048',
-            'existing_gambar_soal' => 'nullable|string',
-            'answers' => 'nullable|array|min:1',
-            'answers.*.id' => 'nullable|integer|exists:jawaban_bank_soal,id',
-            'answers.*.opsi' => 'required_with:answers|in:A,B,C,D',
-            'answers.*.jawaban' => 'required_with:answers|string',
-            'answers.*.nilai' => 'required_with:answers|integer|min:0',
-            'answers.*.is_correct' => 'required_with:answers|boolean',
-            'answers.*.gambar_jawaban' => 'nullable|image|max:2048',
-            'answers.*.existing_image' => 'nullable|string',
-        ]);
+        $data = $request->validate(
+            [
+                'kategori_id' => 'required|exists:kategori,id',
+                'nomor' => 'required|integer|min:1|unique:detail_bank_soal,nomor,NULL,id,bank_soal_id,' . $bankSoal->id,
+                'soal' => 'required|string',
+                'gambar_soal' => 'nullable|image|max:2048',
+                'existing_gambar_soal' => 'nullable|string',
+                'answers' => 'nullable|array|min:1',
+                'answers.*.id' => 'nullable|integer|exists:jawaban_bank_soal,id',
+                'answers.*.opsi' => 'required_with:answers|in:A,B,C,D',
+                'answers.*.jawaban' => 'required_with:answers|string',
+                'answers.*.nilai' => 'required_with:answers|integer|min:0',
+                'answers.*.is_correct' => 'required_with:answers|boolean',
+                'answers.*.gambar_jawaban' => 'nullable|image|max:2048',
+                'answers.*.existing_image' => 'nullable|string',
+            ],
+            $this->messages()
+        );
 
         DB::transaction(function () use ($request, $bankSoal, $data) {
             $detail = $bankSoal->detail()->create([
@@ -207,21 +225,24 @@ class BankSoalController extends Controller
 
     public function updateDetail(Request $request, DetailBankSoal $detailBankSoal)
     {
-        $data = $request->validate([
-            'kategori_id' => 'required|exists:kategori,id',
-            'nomor' => 'required|integer|min:1|unique:detail_bank_soal,nomor,' . $detailBankSoal->id . ',id,bank_soal_id,' . $detailBankSoal->bank_soal_id,
-            'soal' => 'required|string',
-            'gambar_soal' => 'nullable|image|max:2048',
-            'existing_gambar_soal' => 'nullable|string',
-            'answers' => 'nullable|array|min:1',
-            'answers.*.id' => 'nullable|integer|exists:jawaban_bank_soal,id',
-            'answers.*.opsi' => 'required_with:answers|in:A,B,C,D',
-            'answers.*.jawaban' => 'required_with:answers|string',
-            'answers.*.nilai' => 'required_with:answers|integer|min:0',
-            'answers.*.is_correct' => 'required_with:answers|boolean',
-            'answers.*.gambar_jawaban' => 'nullable|image|max:2048',
-            'answers.*.existing_image' => 'nullable|string',
-        ]);
+        $data = $request->validate(
+            [
+                'kategori_id' => 'required|exists:kategori,id',
+                'nomor' => 'required|integer|min:1|unique:detail_bank_soal,nomor,' . $detailBankSoal->id . ',id,bank_soal_id,' . $detailBankSoal->bank_soal_id,
+                'soal' => 'required|string',
+                'gambar_soal' => 'nullable|image|max:2048',
+                'existing_gambar_soal' => 'nullable|string',
+                'answers' => 'nullable|array|min:1',
+                'answers.*.id' => 'nullable|integer|exists:jawaban_bank_soal,id',
+                'answers.*.opsi' => 'required_with:answers|in:A,B,C,D',
+                'answers.*.jawaban' => 'required_with:answers|string',
+                'answers.*.nilai' => 'required_with:answers|integer|min:0',
+                'answers.*.is_correct' => 'required_with:answers|boolean',
+                'answers.*.gambar_jawaban' => 'nullable|image|max:2048',
+                'answers.*.existing_image' => 'nullable|string',
+            ],
+            $this->messages()
+        );
 
         DB::transaction(function () use ($request, $detailBankSoal, $data) {
             $payload = [
@@ -251,32 +272,24 @@ class BankSoalController extends Controller
     {
         $detailBankSoal->load('jawaban');
 
-        if ($detailBankSoal->gambar_soal) {
-            $this->deleteImage($detailBankSoal->gambar_soal);
-        }
-
-        foreach ($detailBankSoal->jawaban as $answer) {
-            if ($answer->gambar_jawaban) {
-                $this->deleteImage($answer->gambar_jawaban);
-            }
-        }
-
-        $detailBankSoal->jawaban()->delete();
-        $detailBankSoal->delete();
+        $this->purgeDetailWithFiles($detailBankSoal);
 
         return back()->with('success', 'Soal berhasil dihapus.');
     }
 
     public function storeAnswer(Request $request, DetailBankSoal $detailBankSoal)
     {
-        $data = $request->validate([
-            'opsi' => 'required|in:A,B,C,D',
-            'jawaban' => 'required|string',
-            'gambar_jawaban' => 'nullable|image|max:2048',
-            'existing_image' => 'nullable|string',
-            'nilai' => 'required|integer|min:0',
-            'is_correct' => 'required|boolean',
-        ]);
+        $data = $request->validate(
+            [
+                'opsi' => 'required|in:A,B,C,D',
+                'jawaban' => 'required|string',
+                'gambar_jawaban' => 'nullable|image|max:2048',
+                'existing_image' => 'nullable|string',
+                'nilai' => 'required|integer|min:0',
+                'is_correct' => 'required|boolean',
+            ],
+            $this->messages()
+        );
 
         $payload = [
             'opsi' => $data['opsi'],
@@ -293,14 +306,17 @@ class BankSoalController extends Controller
 
     public function updateAnswer(Request $request, JawabanBankSoal $jawabanBankSoal)
     {
-        $data = $request->validate([
-            'opsi' => 'required|in:A,B,C,D',
-            'jawaban' => 'required|string',
-            'gambar_jawaban' => 'nullable|image|max:2048',
-            'existing_image' => 'nullable|string',
-            'nilai' => 'required|integer|min:0',
-            'is_correct' => 'required|boolean',
-        ]);
+        $data = $request->validate(
+            [
+                'opsi' => 'required|in:A,B,C,D',
+                'jawaban' => 'required|string',
+                'gambar_jawaban' => 'nullable|image|max:2048',
+                'existing_image' => 'nullable|string',
+                'nilai' => 'required|integer|min:0',
+                'is_correct' => 'required|boolean',
+            ],
+            $this->messages()
+        );
 
         $payload = [
             'opsi' => $data['opsi'],
@@ -323,6 +339,10 @@ class BankSoalController extends Controller
 
     public function destroyAnswer(JawabanBankSoal $jawabanBankSoal)
     {
+        if ($jawabanBankSoal->gambar_jawaban) {
+            $this->deleteImage($jawabanBankSoal->gambar_jawaban);
+        }
+
         $jawabanBankSoal->delete();
 
         return back()->with('success', 'Jawaban berhasil dihapus.');
@@ -330,16 +350,19 @@ class BankSoalController extends Controller
 
     protected function validateBankSoal(Request $request): array
     {
-        $data = $request->validate([
-            'jenis_tryout_id' => 'required|exists:jenis_tryout,id',
-            'judul' => 'required|string|max:100',
-            'waktu_pengerjaan' => 'required|integer|min:1',
-            'status' => 'required|in:aktif,tidak_aktif',
-            'kategori_config' => 'required|array|min:1',
-            'kategori_config.*.kategori_id' => 'required|exists:kategori,id',
-            'kategori_config.*.batas_nilai' => 'required|integer|min:0',
-            'kategori_config.*.jumlah_soal' => 'required|integer|min:0',
-        ]);
+        $data = $request->validate(
+            [
+                'jenis_tryout_id' => 'required|exists:jenis_tryout,id',
+                'judul' => 'required|string|max:100',
+                'waktu_pengerjaan' => 'required|integer|min:1',
+                'status' => 'required|in:aktif,tidak_aktif',
+                'kategori_config' => 'required|array|min:1',
+                'kategori_config.*.kategori_id' => 'required|exists:kategori,id',
+                'kategori_config.*.batas_nilai' => 'required|integer|min:0',
+                'kategori_config.*.jumlah_soal' => 'required|integer|min:0',
+            ],
+            $this->messages()
+        );
 
         $totals = collect($data['kategori_config']);
 
@@ -375,6 +398,9 @@ class BankSoalController extends Controller
         }
 
         $relativeDirectory = trim($directory, '/');
+        if (!Str::startsWith($relativeDirectory, 'uploads/')) {
+            $relativeDirectory = 'uploads/' . $relativeDirectory;
+        }
         $destinationPath = public_path($relativeDirectory);
 
         if (!File::exists($destinationPath)) {
@@ -399,6 +425,24 @@ class BankSoalController extends Controller
         if (File::exists($fullPath)) {
             File::delete($fullPath);
         }
+    }
+
+    protected function purgeDetailWithFiles(DetailBankSoal $detailBankSoal): void
+    {
+        $detailBankSoal->loadMissing('jawaban');
+
+        if ($detailBankSoal->gambar_soal) {
+            $this->deleteImage($detailBankSoal->gambar_soal);
+        }
+
+        foreach ($detailBankSoal->jawaban as $answer) {
+            if ($answer->gambar_jawaban) {
+                $this->deleteImage($answer->gambar_jawaban);
+            }
+        }
+
+        $detailBankSoal->jawaban()->delete();
+        $detailBankSoal->delete();
     }
 
     protected function syncAnswersFromRequest(Request $request, DetailBankSoal $detail, array $answers): void
@@ -440,5 +484,67 @@ class BankSoalController extends Controller
 
             $detail->jawaban()->create($payload);
         }
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'kategori_id.required' => 'Kategori wajib dipilih.',
+            'kategori_id.exists' => 'Kategori tidak ditemukan.',
+            'nomor.required' => 'Nomor soal wajib diisi.',
+            'nomor.integer' => 'Nomor soal harus berupa angka.',
+            'nomor.min' => 'Nomor soal minimal 1.',
+            'nomor.unique' => 'Nomor soal sudah digunakan.',
+            'soal.required' => 'Pertanyaan wajib diisi.',
+            'soal.string' => 'Pertanyaan tidak valid.',
+            'gambar_soal.image' => 'Gambar soal harus berupa file gambar.',
+            'gambar_soal.max' => 'Ukuran gambar soal maksimal 2MB.',
+            'answers.array' => 'Jawaban tidak valid.',
+            'answers.min' => 'Minimal satu jawaban diisi.',
+            'answers.*.opsi.required_with' => 'Pilih opsi jawaban.',
+            'answers.*.opsi.in' => 'Opsi jawaban tidak valid.',
+            'answers.*.jawaban.required_with' => 'Deskripsi jawaban wajib diisi.',
+            'answers.*.jawaban.string' => 'Deskripsi jawaban tidak valid.',
+            'answers.*.nilai.required_with' => 'Nilai wajib diisi.',
+            'answers.*.nilai.integer' => 'Nilai harus berupa angka.',
+            'answers.*.nilai.min' => 'Nilai minimal 0.',
+            'answers.*.is_correct.required_with' => 'Tandai apakah jawaban benar atau salah.',
+            'answers.*.gambar_jawaban.image' => 'File gambar jawaban harus berupa gambar.',
+            'answers.*.gambar_jawaban.max' => 'Ukuran gambar jawaban maksimal 2MB.',
+            'opsi.required' => 'Pilih opsi jawaban.',
+            'opsi.in' => 'Opsi jawaban tidak valid.',
+            'jawaban.required' => 'Deskripsi jawaban wajib diisi.',
+            'jawaban.string' => 'Deskripsi jawaban tidak valid.',
+            'nilai.required' => 'Nilai wajib diisi.',
+            'nilai.integer' => 'Nilai harus berupa angka.',
+            'nilai.min' => 'Nilai minimal 0.',
+            'is_correct.required' => 'Tandai apakah jawaban benar atau salah.',
+            'jenis_tryout_id.required' => 'Jenis tryout wajib dipilih.',
+            'jenis_tryout_id.exists' => 'Jenis tryout tidak ditemukan.',
+            'judul.required' => 'Judul wajib diisi.',
+            'judul.string' => 'Judul tidak valid.',
+            'judul.max' => 'Judul maksimal 100 karakter.',
+            'waktu_pengerjaan.required' => 'Waktu pengerjaan wajib diisi.',
+            'waktu_pengerjaan.integer' => 'Waktu pengerjaan harus berupa angka.',
+            'waktu_pengerjaan.min' => 'Waktu pengerjaan minimal 1 menit.',
+            'status.required' => 'Status wajib dipilih.',
+            'status.in' => 'Status tidak valid.',
+            'kategori_config.required' => 'Konfigurasi kategori wajib diisi.',
+            'kategori_config.array' => 'Konfigurasi kategori tidak valid.',
+            'kategori_config.min' => 'Minimal satu konfigurasi kategori diisi.',
+            'kategori_config.*.kategori_id.required' => 'Kategori pada konfigurasi wajib dipilih.',
+            'kategori_config.*.kategori_id.exists' => 'Kategori pada konfigurasi tidak ditemukan.',
+            'kategori_config.*.batas_nilai.required' => 'Batas nilai wajib diisi.',
+            'kategori_config.*.batas_nilai.integer' => 'Batas nilai harus berupa angka.',
+            'kategori_config.*.batas_nilai.min' => 'Batas nilai minimal 0.',
+            'kategori_config.*.jumlah_soal.required' => 'Jumlah soal wajib diisi.',
+            'kategori_config.*.jumlah_soal.integer' => 'Jumlah soal harus berupa angka.',
+            'kategori_config.*.jumlah_soal.min' => 'Jumlah soal minimal 0.',
+            'ids.required' => 'Pilih data yang akan dihapus.',
+            'ids.array' => 'Data yang dikirim tidak valid.',
+            'ids.min' => 'Pilih minimal satu data.',
+            'ids.*.integer' => 'Data tidak valid.',
+            'ids.*.exists' => 'Data tidak ditemukan.',
+        ];
     }
 }

@@ -10,7 +10,7 @@ import MateriFormDialog from './form';
 import { columns } from './columns';
 import type { MateriPageProps, MateriRecord } from './types';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Materi', href: '/materi' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Materi', href: '/admin/materi' }];
 
 const MateriPage = () => {
     const store = useMateriStore();

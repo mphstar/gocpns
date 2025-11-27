@@ -7,7 +7,7 @@ import { Award, BookOpen, BookText, GraduationCap, School, TrendingDown, Trendin
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: '/admin/dashboard',
     },
 ];
 

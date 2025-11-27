@@ -1,0 +1,27 @@
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : [{"name":"Admin","path":"resources/js/Pages/Admin","sha":"e38e65767a5ff8bb7a185a9121e8407446aaee3a"
+                    ,"size":0,"url":"https://api.github.com/repos/mphstar/go-cpns/contents/resources/js/Pages/Admin?ref
+                    =m...
+RawContent        : HTTP/1.1 200 OK
+                    Access-Control-Allow-Origin: *
+                    Access-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, 
+                    X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit...
+Forms             : 
+Headers           : {[Access-Control-Allow-Origin, *], [Access-Control-Expose-Headers, ETag, Link, Location, 
+                    Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, 
+                    X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, 
+                    X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset], 
+                    [Content-Security-Policy, default-src 'none'], [Referrer-Policy, origin-when-cross-origin, 
+                    strict-origin-when-cross-origin]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : 
+RawContentLength  : 5313
+
+
+
+

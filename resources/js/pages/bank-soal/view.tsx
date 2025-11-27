@@ -10,7 +10,7 @@ import BankSoalFormDialog from './form';
 import { columns } from './columns';
 import type { BankSoalPageProps, BankSoalRecord } from './types';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Bank Soal', href: '/bank-soal' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Bank Soal', href: '/admin/bank-soal' }];
 
 const BankSoalPage = () => {
     const store = useBankSoalStore();
