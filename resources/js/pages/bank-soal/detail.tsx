@@ -144,6 +144,22 @@ const BankSoalDetailPage = () => {
                                             <span className="underline">Lihat penuh</span>
                                         </button>
                                     )}
+                                    {(question.pembahasan || question.pembahasan_file) && (
+                                        <div className="mt-2 space-y-1 rounded-md bg-muted/30 p-3 text-sm">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pembahasan</p>
+                                            {question.pembahasan && <p className="whitespace-pre-line">{question.pembahasan}</p>}
+                                            {question.pembahasan_file && (
+                                                <a
+                                                    href={`/${question.pembahasan_file}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-primary underline"
+                                                >
+                                                    Lihat berkas pembahasan
+                                                </a>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex gap-2 self-start md:self-auto">
                                     <Button variant="outline" size="sm" asChild>

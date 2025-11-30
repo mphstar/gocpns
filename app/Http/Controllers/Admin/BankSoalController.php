@@ -193,6 +193,9 @@ class BankSoalController extends Controller
                 'kategori_id' => 'required|exists:kategori,id',
                 'nomor' => 'required|integer|min:1|unique:detail_bank_soal,nomor,NULL,id,bank_soal_id,' . $bankSoal->id,
                 'soal' => 'required|string',
+                'pembahasan' => 'nullable|string',
+                'pembahasan_file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,jpg,jpeg,png|max:5120',
+                'existing_pembahasan_file' => 'nullable|string',
                 'gambar_soal' => 'nullable|image|max:2048',
                 'existing_gambar_soal' => 'nullable|string',
                 'answers' => 'nullable|array|min:1',
@@ -212,6 +215,8 @@ class BankSoalController extends Controller
                 'kategori_id' => $data['kategori_id'],
                 'nomor' => $data['nomor'],
                 'soal' => $data['soal'],
+                'pembahasan' => $data['pembahasan'] ?? null,
+                'pembahasan_file' => $this->storeImage($request->file('pembahasan_file'), 'bank-soal/pembahasan'),
                 'gambar_soal' => $this->storeImage($request->file('gambar_soal'), 'bank-soal/soal'),
             ]);
 
@@ -230,6 +235,9 @@ class BankSoalController extends Controller
                 'kategori_id' => 'required|exists:kategori,id',
                 'nomor' => 'required|integer|min:1|unique:detail_bank_soal,nomor,' . $detailBankSoal->id . ',id,bank_soal_id,' . $detailBankSoal->bank_soal_id,
                 'soal' => 'required|string',
+                'pembahasan' => 'nullable|string',
+                'pembahasan_file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,jpg,jpeg,png|max:5120',
+                'existing_pembahasan_file' => 'nullable|string',
                 'gambar_soal' => 'nullable|image|max:2048',
                 'existing_gambar_soal' => 'nullable|string',
                 'answers' => 'nullable|array|min:1',
@@ -249,6 +257,7 @@ class BankSoalController extends Controller
                 'kategori_id' => $data['kategori_id'],
                 'nomor' => $data['nomor'],
                 'soal' => $data['soal'],
+                'pembahasan' => $data['pembahasan'] ?? null,
             ];
 
             if ($request->hasFile('gambar_soal')) {
@@ -256,6 +265,15 @@ class BankSoalController extends Controller
                 $payload['gambar_soal'] = $this->storeImage($request->file('gambar_soal'), 'bank-soal/soal');
             } elseif (!empty($data['existing_gambar_soal'])) {
                 $payload['gambar_soal'] = $data['existing_gambar_soal'];
+            }
+
+            if ($request->hasFile('pembahasan_file')) {
+                $this->deleteImage($detailBankSoal->pembahasan_file);
+                $payload['pembahasan_file'] = $this->storeImage($request->file('pembahasan_file'), 'bank-soal/pembahasan');
+            } elseif (!empty($data['existing_pembahasan_file'])) {
+                $payload['pembahasan_file'] = $data['existing_pembahasan_file'];
+            } else {
+                $payload['pembahasan_file'] = null;
             }
 
             $detailBankSoal->update($payload);
@@ -433,6 +451,9 @@ class BankSoalController extends Controller
 
         if ($detailBankSoal->gambar_soal) {
             $this->deleteImage($detailBankSoal->gambar_soal);
+        }
+        if ($detailBankSoal->pembahasan_file) {
+            $this->deleteImage($detailBankSoal->pembahasan_file);
         }
 
         foreach ($detailBankSoal->jawaban as $answer) {

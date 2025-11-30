@@ -11,6 +11,8 @@ type AnswerItem = {
     nomor?: number;
     soal?: string;
     kategori?: string | null;
+    pembahasan?: string | null;
+    pembahasan_file?: string | null;
     user_jawaban?: {
         opsi?: string;
         teks?: string | null;
@@ -23,6 +25,12 @@ type AnswerItem = {
         teks?: string | null;
         gambar?: string | null;
     } | null;
+};
+
+const isImage = (url?: string | null) => {
+    if (!url) return false;
+    const normalized = url.toLowerCase();
+    return normalized.startsWith('blob:') || /\.(png|jpe?g|gif|webp|bmp)$/i.test(normalized.split('?')[0]);
 };
 
 type PageProps = {
@@ -208,6 +216,24 @@ const HistoryDetail = () => {
                                         </div>
                                     )}
                                 </div>
+                                {(ans.pembahasan || ans.pembahasan_file) && (
+                                    <div className="rounded-md bg-muted/30 p-3 text-sm space-y-1">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pembahasan</p>
+                                        {ans.pembahasan && <p className="whitespace-pre-line">{ans.pembahasan}</p>}
+                                        {ans.pembahasan_file && isImage(ans.pembahasan_file) && (
+                                            <img
+                                                src={ans.pembahasan_file}
+                                                alt="Pembahasan"
+                                                className="mt-2 max-h-48 w-full rounded-md border object-contain"
+                                            />
+                                        )}
+                                        {ans.pembahasan_file && !isImage(ans.pembahasan_file) && (
+                                            <a href={ans.pembahasan_file} target="_blank" rel="noreferrer" className="text-primary underline">
+                                                Lihat berkas pembahasan
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ))}
                         {answers.length === 0 && <p className="text-sm text-muted-foreground">Belum ada jawaban terekam.</p>}

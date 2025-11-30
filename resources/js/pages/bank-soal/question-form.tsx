@@ -34,6 +34,11 @@ const revokePreview = (url?: string | null) => {
     }
 };
 
+const isImagePath = (path?: string | null) => {
+    if (!path) return false;
+    return /\.(png|jpe?g|gif|webp|bmp)$/i.test(path) || path.startsWith('blob:');
+};
+
 const createDefaultAnswers = () =>
     opsiList.map((opsi) => ({
         opsi,
@@ -50,6 +55,9 @@ const buildInitialValues = (kategoriOptions: KategoriOption[], question: DetailB
             kategori_id: kategoriOptions[0]?.id ?? 0,
             nomor: nextNomor,
             soal: '',
+            pembahasan: '',
+            pembahasan_file: null,
+            existing_pembahasan_file: null,
             gambar_soal: null,
             existing_gambar_soal: null,
             answers: createDefaultAnswers(),
@@ -76,6 +84,9 @@ const buildInitialValues = (kategoriOptions: KategoriOption[], question: DetailB
         kategori_id: question.kategori_id ?? kategoriOptions[0]?.id ?? 0,
         nomor: question.nomor ?? nextNomor,
         soal: question.soal ?? '',
+        pembahasan: question.pembahasan ?? '',
+        pembahasan_file: null,
+        existing_pembahasan_file: question.pembahasan_file ?? null,
         gambar_soal: null,
         existing_gambar_soal: question.gambar_soal ?? null,
         answers,
@@ -104,6 +115,10 @@ const QuestionFormPage = () => {
             return formatPreviewPath(existing?.gambar_jawaban ?? null);
         }),
     );
+    const [pembahasanFileLabel, setPembahasanFileLabel] = useState<string | null>(question?.pembahasan_file ?? null);
+    const [pembahasanPreview, setPembahasanPreview] = useState<string | null>(() =>
+        isImagePath(question?.pembahasan_file) ? formatPreviewPath(question?.pembahasan_file ?? null) : null,
+    );
 
     useEffect(() => {
         if (hasBackendErrors) {
@@ -121,6 +136,11 @@ const QuestionFormPage = () => {
                 const existing = question?.jawaban?.find((item) => item.opsi === opsi);
                 return formatPreviewPath(existing?.gambar_jawaban ?? null);
             });
+        });
+        setPembahasanFileLabel(question?.pembahasan_file ?? null);
+        setPembahasanPreview((prev) => {
+            revokePreview(prev);
+            return isImagePath(question?.pembahasan_file) ? formatPreviewPath(question?.pembahasan_file ?? null) : null;
         });
     }, [question, kategoriOptions, nextNomor, hasBackendErrors]);
 
@@ -142,6 +162,12 @@ const QuestionFormPage = () => {
             answerPreviews.forEach((preview) => revokePreview(preview));
         };
     }, [answerPreviews]);
+
+    useEffect(() => {
+        return () => {
+            revokePreview(pembahasanPreview);
+        };
+    }, [pembahasanPreview]);
 
     const updateQuestionPreview = (file: File | null, existingPath?: string | null) => {
         setQuestionPreview((prev) => {
@@ -169,11 +195,20 @@ const QuestionFormPage = () => {
         formData.append('kategori_id', values.kategori_id.toString());
         formData.append('nomor', values.nomor.toString());
         formData.append('soal', values.soal);
+        if (values.pembahasan) {
+            formData.append('pembahasan', values.pembahasan);
+        }
 
         if (values.gambar_soal instanceof File) {
             formData.append('gambar_soal', values.gambar_soal);
         } else if (values.existing_gambar_soal) {
             formData.append('existing_gambar_soal', values.existing_gambar_soal);
+        }
+
+        if (values.pembahasan_file instanceof File) {
+            formData.append('pembahasan_file', values.pembahasan_file);
+        } else if (values.existing_pembahasan_file) {
+            formData.append('existing_pembahasan_file', values.existing_pembahasan_file);
         }
 
         values.answers.forEach((answer, index) => {
@@ -300,6 +335,82 @@ const QuestionFormPage = () => {
                                     <FormControl>
                                         <Textarea rows={5} placeholder="Tulis deskripsi soal" {...field} />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="pembahasan"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Pembahasan Jawaban (opsional)</FormLabel>
+                                    <FormControl>
+                                        <Textarea rows={4} placeholder="Jelaskan mengapa jawaban benar" {...field} value={field.value ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="pembahasan_file"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>File/Gambar Pembahasan (opsional)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="file"
+                                            accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,image/*"
+                                            onChange={(event) => {
+                                                const file = event.target.files?.[0] ?? null;
+                                                field.onChange(file);
+                                                const existingPath = form.getValues('existing_pembahasan_file');
+                                                if (file) {
+                                                    form.setValue('existing_pembahasan_file', null);
+                                                    setPembahasanFileLabel(file.name);
+                                                    setPembahasanPreview((prev) => {
+                                                        revokePreview(prev);
+                                                        return file.type?.startsWith('image/') ? URL.createObjectURL(file) : null;
+                                                    });
+                                                } else {
+                                                    setPembahasanFileLabel(existingPath ?? null);
+                                                    setPembahasanPreview((prev) => {
+                                                        revokePreview(prev);
+                                                        return isImagePath(existingPath) ? formatPreviewPath(existingPath ?? null) : null;
+                                                    });
+                                                }
+                                            }}
+                                        />
+                                    </FormControl>
+                                    {pembahasanPreview && (
+                                        <img
+                                            src={pembahasanPreview}
+                                            alt="Preview pembahasan"
+                                            className="mt-3 h-32 w-full max-w-xs rounded-md border object-cover"
+                                        />
+                                    )}
+                                    {pembahasanFileLabel && !pembahasanPreview && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Berkas saat ini:{' '}
+                                            {pembahasanFileLabel.startsWith('/') ||
+                                            pembahasanFileLabel.startsWith('uploads') ||
+                                            pembahasanFileLabel.startsWith('http') ? (
+                                                <a
+                                                    href={formatPreviewPath(pembahasanFileLabel) ?? undefined}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-primary underline"
+                                                >
+                                                    Lihat
+                                                </a>
+                                            ) : (
+                                                <span className="font-medium text-foreground">{pembahasanFileLabel}</span>
+                                            )}
+                                        </p>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}

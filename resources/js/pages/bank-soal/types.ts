@@ -68,6 +68,8 @@ export interface DetailBankSoalRecord {
     nomor: number;
     soal: string;
     gambar_soal?: string | null;
+    pembahasan?: string | null;
+    pembahasan_file?: string | null;
     kategori?: KategoriOption;
     jawaban: JawabanBankSoalRecord[];
 }

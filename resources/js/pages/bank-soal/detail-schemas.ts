@@ -32,6 +32,9 @@ export const questionSchema = z.object({
     soal: z
         .string({ required_error: 'Soal wajib diisi' })
         .min(5, { message: 'Soal minimal 5 karakter' }),
+    pembahasan: z.string().optional().or(z.null()),
+    pembahasan_file: fileSchema,
+    existing_pembahasan_file: z.string().optional().or(z.null()),
     gambar_soal: fileSchema,
     existing_gambar_soal: z.string().optional().or(z.null()),
     answers: z.array(answerSchema).min(1, { message: 'Minimal satu jawaban diisi' }),

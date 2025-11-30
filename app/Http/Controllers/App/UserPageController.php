@@ -443,6 +443,8 @@ class UserPageController extends Controller
                 'nomor' => $detail?->nomor,
                 'soal' => $detail?->soal,
                 'kategori' => $detail?->kategori?->kategori,
+                'pembahasan' => $detail?->pembahasan,
+                'pembahasan_file' => $detail?->pembahasan_file ? asset($detail->pembahasan_file) : null,
                 'user_jawaban' => [
                     'opsi' => $jawab->jawaban_opsi,
                     'teks' => optional($jawab->jawaban)->jawaban,

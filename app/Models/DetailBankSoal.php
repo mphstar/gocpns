@@ -17,6 +17,8 @@ class DetailBankSoal extends Model
         'nomor',
         'soal',
         'gambar_soal',
+        'pembahasan',
+        'pembahasan_file',
     ];
 
     protected $casts = [
