@@ -345,7 +345,7 @@ class UserPageController extends Controller
                 $benar = $rows->sum('jumlah_benar');
                 $salah = $rows->sum('jumlah_salah');
                 $nilai = $rows->sum('nilai');
-                $batas = $rows->sum('batas_nilai');
+                $batas = $rows->max('batas_nilai') ?? 0;
                 return [
                     'nama' => $nama,
                     'benar' => $benar,

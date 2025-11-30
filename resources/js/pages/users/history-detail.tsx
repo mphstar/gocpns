@@ -48,9 +48,8 @@ const HistoryDetail = () => {
 
     const perKategoriData = kategori.map((k) => ({
         name: k.nama ?? 'Kategori',
-        benar: k.benar,
-        salah: k.salah,
         nilai: k.nilai,
+        batas: k.batas,
     }));
 
     const perSoalData = answers.map((a) => ({
@@ -118,20 +117,20 @@ const HistoryDetail = () => {
                                 <div className="-mx-2 min-w-[320px] px-2 sm:mx-0">
                                     <ChartContainer
                                         config={{
-                                            benar: { label: 'Benar', color: '#22c55e' },
-                                            salah: { label: 'Salah', color: '#ef4444' },
+                                            nilai: { label: 'Nilai', color: '#3b82f6' },
+                                            batas: { label: 'Batas Nilai', color: '#94a3b8' },
                                         }}
                                         className="h-[260px] w-full"
                                     >
                                         <ResponsiveContainer>
-                                            <BarChart data={perKategoriData} barCategoryGap="20%">
+                                            <BarChart data={perKategoriData} barCategoryGap="24%">
                                                 <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
                                                 <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
                                                 <YAxis tickLine={false} axisLine={false} />
                                                 <ChartTooltip content={<ChartTooltipContent />} />
                                                 <ChartLegend content={<ChartLegendContent />} />
-                                                <Bar dataKey="benar" radius={[6, 6, 0, 0]} fill="#22c55e" />
-                                                <Bar dataKey="salah" radius={[6, 6, 0, 0]} fill="#ef4444" />
+                                                <Bar dataKey="batas" radius={[6, 6, 0, 0]} fill="#94a3b8" />
+                                                <Bar dataKey="nilai" radius={[6, 6, 0, 0]} fill="#3b82f6" />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </ChartContainer>
