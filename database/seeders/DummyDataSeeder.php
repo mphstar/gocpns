@@ -39,8 +39,7 @@ class DummyDataSeeder extends Seeder
                 Materi::updateOrCreate(
                     ['name' => "Materi Demo {$i}"],
                     [
-                        'kategori_id' => $kategori->random()->id,
-                        'file' => 'public/dummy/materi-demo.pdf',
+                        'file' => 'uploads/materi/materi-demo.pdf',
                     ]
                 );
             }

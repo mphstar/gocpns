@@ -14,7 +14,7 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Materi', href: '/admin/materi' 
 
 const MateriPage = () => {
     const store = useMateriStore();
-    const { records, kategoriOptions } = usePage().props as MateriPageProps;
+    const { records } = usePage().props as MateriPageProps;
     const data = records.data ?? [];
 
     const handleBulkDelete = (rows: MateriRecord[]) => {
@@ -41,12 +41,12 @@ const MateriPage = () => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Materi" />
-            <MateriFormDialog kategoriOptions={kategoriOptions} />
+            <MateriFormDialog />
             <div className="flex flex-col gap-4 rounded-xl p-4">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 className="text-2xl font-bold">Materi</h2>
-                        <p className="text-sm text-muted-foreground">Manajemen materi belajar untuk setiap kategori soal.</p>
+                        <p className="text-sm text-muted-foreground">Unggah dan kelola materi belajar.</p>
                     </div>
                     <Button
                         onClick={() => {

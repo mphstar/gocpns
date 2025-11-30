@@ -66,20 +66,6 @@ export const columns: ColumnDef<MateriRecord>[] = [
         cell: ({ cell }) => <span className="font-semibold">{cell.getValue<string>()}</span>,
     },
     {
-        accessorKey: 'kategori.kategori',
-        header: 'Kategori',
-        cell: ({ row }) => {
-            const kategori = row.original.kategori;
-            return kategori ? (
-                <span className="text-sm text-muted-foreground">
-                    {kategori.kategori} — {kategori.kepanjangan}
-                </span>
-            ) : (
-                '-'
-            );
-        },
-    },
-    {
         accessorKey: 'file',
         header: 'Berkas',
         cell: ({ row }) => (

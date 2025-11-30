@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, Search } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { useEffect, useState } from 'react';
@@ -11,8 +10,6 @@ import { useEffect, useState } from 'react';
 type MateriItem = {
     id: number;
     name: string;
-    kategori?: string | null;
-    kategori_id?: number | null;
     file_url?: string | null;
 };
 
@@ -24,26 +21,12 @@ type PageProps = {
         current_page: number;
         last_page: number;
     };
-    categories: Array<{ id: number; kategori: string }>;
-    selectedKategoriId?: number | null;
     search?: string;
 };
 
 const Materi = () => {
-    const { materi, categories, selectedKategoriId, search } = usePage<PageProps>().props;
+    const { materi, search } = usePage<PageProps>().props;
     const [keyword, setKeyword] = useState(search ?? '');
-
-    const onFilterChange = (kategoriId: string) => {
-        const payload = kategoriId && kategoriId !== 'all' ? { kategori_id: kategoriId } : {};
-        router.get(
-            route('app.materi'),
-            { ...payload, search: keyword || undefined },
-            {
-                replace: true,
-                preserveScroll: true,
-            },
-        );
-    };
 
     useEffect(() => {
         setKeyword(search ?? '');
@@ -52,7 +35,6 @@ const Materi = () => {
     const submitSearch = (e?: React.FormEvent) => {
         e?.preventDefault();
         const payload: Record<string, string> = {};
-        if (selectedKategoriId) payload.kategori_id = String(selectedKategoriId);
         if (keyword.trim()) payload.search = keyword.trim();
         router.get(route('app.materi'), payload, { replace: true, preserveScroll: true });
     };
@@ -88,41 +70,16 @@ const Materi = () => {
                             onChange={(e) => setKeyword(e.target.value)}
                         />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Select
-                            onValueChange={onFilterChange}
-                            value={selectedKategoriId ? String(selectedKategoriId) : 'all'}
-                        >
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Filter kategori" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Semua Kategori</SelectItem>
-                                {categories.map((kat) => (
-                                    <SelectItem key={kat.id} value={String(kat.id)}>
-                                        {kat.kategori}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button type="submit" variant="outline">
-                            Cari
-                        </Button>
-                    </div>
+                    <Button type="submit" variant="outline">
+                        Cari
+                    </Button>
                 </form>
 
                 <div className="grid gap-4 md:grid-cols-2">
                     {materi.data.map((item) => (
                         <Card key={item.id}>
                             <CardHeader className="flex-row items-center justify-between gap-3">
-                                <div className="flex items-center gap-2">
-                                    {item.kategori && (
-                                        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                                            {item.kategori}
-                                        </span>
-                                    )}
-                                    <CardTitle className="text-lg">{item.name}</CardTitle>
-                                </div>
+                                <CardTitle className="text-lg">{item.name}</CardTitle>
                             </CardHeader>
                             <CardContent className="flex items-center justify-between text-sm text-muted-foreground">
                                 <div className="flex items-center gap-2">

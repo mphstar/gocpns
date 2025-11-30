@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\CapaianKompetensi;
+use App\Models\Kategori;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\Materi;
@@ -22,7 +23,15 @@ class DatabaseSeeder extends Seeder
             'name' => 'Bintang',
             'email' => 'bintang@gmail.com',
             'password' => bcrypt('12345678'),
+            'role' => 'admin',
         ]);
 
+        $kategori = collect([
+            ['kategori' => 'TWK', 'kepanjangan' => 'Tes Wawasan Kebangsaan'],
+            ['kategori' => 'TIU', 'kepanjangan' => 'Tes Intelegensi Umum'],
+            ['kategori' => 'TKP', 'kepanjangan' => 'Tes Karakteristik Pribadi'],
+        ])->map(function ($row) {
+            return Kategori::firstOrCreate(['kategori' => $row['kategori']], $row);
+        });
     }
 }

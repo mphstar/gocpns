@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\HandlesPagination;
 use App\Http\Controllers\Controller;
-use App\Models\Kategori;
 use App\Models\Materi;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -23,13 +22,7 @@ class MateriController extends Controller
         $search = trim((string) $request->input('search', ''));
 
         $records = Materi::query()
-            ->with('kategori:id,kategori,kepanjangan')
-            ->when($search, function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhereHas('kategori', function ($kategoriQuery) use ($search) {
-                        $kategoriQuery->where('kategori', 'like', "%{$search}%");
-                    });
-            })
+            ->when($search, fn ($query) => $query->where('name', 'like', "%{$search}%"))
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
@@ -40,7 +33,6 @@ class MateriController extends Controller
                 'search' => $search,
                 'per_page' => $perPage,
             ],
-            'kategoriOptions' => Kategori::orderBy('kategori')->get(['id', 'kategori', 'kepanjangan']),
         ]);
     }
 
@@ -48,7 +40,6 @@ class MateriController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'kategori_id' => 'required|exists:kategori,id',
             'file' => 'required|file|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
         ]);
 
@@ -63,7 +54,6 @@ class MateriController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'kategori_id' => 'required|exists:kategori,id',
             'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
         ]);
 
@@ -107,13 +97,25 @@ class MateriController extends Controller
     protected function storeFile(UploadedFile $file, string $name): string
     {
         $fileName = Str::slug(Str::limit($name, 50, '')) . '-' . now()->timestamp . '.' . $file->getClientOriginalExtension();
-        return $file->storeAs('materi', $fileName, 'public');
+        $destination = public_path('uploads/materi');
+        if (!is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
+
+        $file->move($destination, $fileName);
+
+        return 'uploads/materi/' . $fileName;
     }
 
     protected function deleteFile(?string $path): void
     {
-        if ($path && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
+        if (!$path) {
+            return;
+        }
+
+        $fullPath = public_path($path);
+        if (is_file($fullPath)) {
+            @unlink($fullPath);
         }
     }
 }

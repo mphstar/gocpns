@@ -16,11 +16,6 @@ class Kategori extends Model
         'kepanjangan',
     ];
 
-    public function materi()
-    {
-        return $this->hasMany(Materi::class);
-    }
-
     public function detailBankSoal()
     {
         return $this->hasMany(DetailBankSoal::class);

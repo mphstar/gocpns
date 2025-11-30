@@ -13,12 +13,6 @@ class Materi extends Model
 
     protected $fillable = [
         'name',
-        'kategori_id',
         'file',
     ];
-
-    public function kategori()
-    {
-        return $this->belongsTo(Kategori::class);
-    }
 }

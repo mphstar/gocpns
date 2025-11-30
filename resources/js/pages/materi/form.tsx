@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { router } from '@inertiajs/react';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,19 +10,13 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { materiSchema, type MateriFormValues } from './schema';
 import useMateriStore from './store';
-import type { MateriPageProps } from './types';
 
 const defaultValues: MateriFormValues = {
     name: '',
-    kategori_id: 0,
     file: null,
 };
 
-interface MateriFormDialogProps {
-    kategoriOptions: MateriPageProps['kategoriOptions'];
-}
-
-const MateriFormDialog = ({ kategoriOptions }: MateriFormDialogProps) => {
+const MateriFormDialog = () => {
     const store = useMateriStore();
 
     const form = useForm<MateriFormValues>({
@@ -35,7 +28,6 @@ const MateriFormDialog = ({ kategoriOptions }: MateriFormDialogProps) => {
         if (store.open && store.dialog === 'update' && store.currentRow) {
             form.reset({
                 name: store.currentRow.name,
-                kategori_id: store.currentRow.kategori_id,
                 file: null,
             });
         }
@@ -56,7 +48,6 @@ const MateriFormDialog = ({ kategoriOptions }: MateriFormDialogProps) => {
 
         const payload: Record<string, unknown> = {
             name: values.name,
-            kategori_id: values.kategori_id,
         };
 
         if (store.dialog === 'create' && !values.file) {
@@ -125,7 +116,7 @@ const MateriFormDialog = ({ kategoriOptions }: MateriFormDialogProps) => {
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>{store.dialog === 'create' ? 'Tambah Materi' : 'Ubah Materi'}</DialogTitle>
-                    <DialogDescription>Materi membantu peserta memahami kategori soal tertentu.</DialogDescription>
+                    <DialogDescription>Unggah materi agar dapat diakses peserta.</DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
@@ -139,31 +130,6 @@ const MateriFormDialog = ({ kategoriOptions }: MateriFormDialogProps) => {
                                     <FormControl>
                                         <Input placeholder="Masukkan judul materi" {...field} autoComplete="off" />
                                     </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="kategori_id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Kategori</FormLabel>
-                                    <Select value={field.value ? String(field.value) : ''} onValueChange={(value) => field.onChange(Number(value))}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Pilih kategori" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {kategoriOptions.map((option) => (
-                                                <SelectItem key={option.id} value={String(option.id)}>
-                                                {option.kategori}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}

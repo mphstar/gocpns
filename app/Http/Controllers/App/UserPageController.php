@@ -22,7 +22,7 @@ class UserPageController extends Controller
     {
         $user = Auth::user();
 
-        $materi = Materi::with('kategori')
+        $materi = Materi::query()
             ->latest()
             ->take(6)
             ->get()
@@ -30,8 +30,6 @@ class UserPageController extends Controller
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
-                    'kategori' => $item->kategori?->kategori,
-                    'kategori_id' => $item->kategori_id,
                     'file_url' => $item->file ? asset($item->file) : null,
                 ];
             });
@@ -86,13 +84,9 @@ class UserPageController extends Controller
 
     public function materi(Request $request)
     {
-        $kategoriId = (int) $request->query('kategori_id', 0);
         $search = trim((string) $request->query('search', ''));
 
-        $categories = Kategori::orderBy('kategori')->get(['id', 'kategori']);
-
-        $materi = Materi::with('kategori')
-            ->when($kategoriId, fn (Builder $q) => $q->where('kategori_id', $kategoriId))
+        $materi = Materi::query()
             ->when($search, fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
             ->latest()
             ->paginate(10)
@@ -100,15 +94,11 @@ class UserPageController extends Controller
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
-                    'kategori' => $item->kategori?->kategori,
-                    'kategori_id' => $item->kategori_id,
                     'file_url' => $item->file ? asset($item->file) : null,
                 ];
             });
 
         return Inertia::render('users/materi', [
-            'categories' => $categories,
-            'selectedKategoriId' => $kategoriId ?: null,
             'search' => $search,
             'materi' => $materi,
         ]);
