@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BankSoalController;
 use App\Http\Controllers\Admin\JenisTryoutController;
 use App\Http\Controllers\Admin\KategoriController;
 use App\Http\Controllers\Admin\MateriController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\App\UserPageController;
@@ -44,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
+        Route::get('/report', [ReportController::class, 'index'])->name('report');
 
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('user.index');

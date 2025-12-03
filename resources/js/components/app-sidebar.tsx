@@ -13,6 +13,7 @@ import {
     LucideLayoutTemplate,
     LucideUser,
     PackageSearch,
+    BarChart3,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -52,6 +53,14 @@ const masterNavItems: NavItem[] = [
     },
 ];
 
+const reportNavItems: NavItem[] = [
+    {
+        title: 'Laporan Pengguna',
+        url: '/admin/report',
+        icon: BarChart3,
+    },
+];
+
 const footerNavItems: NavItem[] = [
     // {
     //     title: 'Repository',
@@ -82,7 +91,8 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
-                <NavMain title={'Master Data'} items={masterNavItems} />
+                <NavMain title="Master Data" items={masterNavItems} />
+                <NavMain title="Pelaporan" items={reportNavItems} />
             </SidebarContent>
 
             <SidebarFooter>

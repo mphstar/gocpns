@@ -10,6 +10,7 @@ use App\Models\HasilTryoutKategori;
 use App\Models\JawabanBankSoal;
 use App\Models\JawabanTryout;
 use App\Models\Kategori;
+use App\Models\JenisTryout;
 use App\Models\Materi;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -107,9 +108,11 @@ class UserPageController extends Controller
     public function tryout(Request $request)
     {
         $kategoriId = (int) $request->query('kategori_id', 0);
+        $jenisId = (int) $request->query('jenis_id', 0);
         $userId = Auth::id();
 
         $categories = Kategori::orderBy('kategori')->get(['id', 'kategori']);
+        $jenisTryoutList = JenisTryout::orderBy('nama')->get(['id', 'nama']);
 
         $ongoingRaw = HasilTryout::with('bankSoal')
             ->where('user_id', $userId)
@@ -136,6 +139,7 @@ class UserPageController extends Controller
             ->when($kategoriId, function (Builder $q) use ($kategoriId) {
                 $q->whereHas('kategoriKonfigurasi', fn (Builder $sub) => $sub->where('kategori_id', $kategoriId));
             })
+            ->when($jenisId, fn (Builder $q) => $q->where('jenis_tryout_id', $jenisId))
             ->latest()
             ->paginate(9)
             ->through(function (BankSoal $item) {
@@ -151,6 +155,8 @@ class UserPageController extends Controller
         return Inertia::render('users/tryout', [
             'categories' => $categories,
             'selectedKategoriId' => $kategoriId ?: null,
+            'jenisTryout' => $jenisTryoutList,
+            'selectedJenisId' => $jenisId ?: null,
             'tryouts' => $tryouts,
             'ongoing' => $ongoingList->mapWithKeys(function ($row) {
                 return [

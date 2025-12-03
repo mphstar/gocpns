@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserNav } from './user-nav';
 import { useEffect, useMemo, useState } from 'react';
-import { Radio, Timer as TimerIcon } from 'lucide-react';
+import { Loader2, Radio, Timer as TimerIcon } from 'lucide-react';
 
 interface AnswerOption {
     id: number;
@@ -44,6 +44,7 @@ const TryoutTake = ({ tryout, questions, session }: TryoutProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [preview, setPreview] = useState<{ src: string; alt: string } | null>(null);
     const [confirmFinish, setConfirmFinish] = useState(false);
+    const [finishing, setFinishing] = useState(false);
 
     const initialSeconds = useMemo(() => Math.max(0, session.remaining_seconds ?? 0), [session.remaining_seconds]);
     const [timeLeft, setTimeLeft] = useState<number>(initialSeconds);
@@ -57,11 +58,10 @@ const TryoutTake = ({ tryout, questions, session }: TryoutProps) => {
     }, [initialSeconds]);
 
     useEffect(() => {
-        if (timeLeft === 0) {
+        if (timeLeft === 0 && !finishing) {
             finishTryout();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [timeLeft]);
+    }, [timeLeft, finishing]);
 
     const handleSelect = (questionId: number, answerId: number) => {
         setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
@@ -73,7 +73,13 @@ const TryoutTake = ({ tryout, questions, session }: TryoutProps) => {
     };
 
     const finishTryout = () => {
-        router.post(route('app.tryout.finish', session.id), {}, { preserveScroll: true });
+        if (finishing) return;
+        setFinishing(true);
+        setConfirmFinish(false);
+        router.post(route('app.tryout.finish', session.id), {}, {
+            preserveScroll: true,
+            onFinish: () => setFinishing(false),
+        });
     };
 
     const currentQuestion = questions[currentIndex];
@@ -119,11 +125,14 @@ const TryoutTake = ({ tryout, questions, session }: TryoutProps) => {
                                 <Link href="/app/tryout">Kembali</Link>
                             </Button>
                             <Button
-                                disabled={timeLeft <= 0}
+                                disabled={timeLeft <= 0 || finishing}
                                 variant={timeLeft > 0 ? 'default' : 'outline'}
                                 onClick={() => setConfirmFinish(true)}
                             >
-                                Selesaikan Tryout
+                                <div className="flex items-center gap-2">
+                                    {finishing && <Loader2 className="h-4 w-4 animate-spin" />}
+                                    Selesaikan Tryout
+                                </div>
                             </Button>
                         </div>
                     </div>
@@ -284,7 +293,12 @@ const TryoutTake = ({ tryout, questions, session }: TryoutProps) => {
                             <Button variant="outline" onClick={() => setConfirmFinish(false)}>
                                 Batal
                             </Button>
-                            <Button onClick={finishTryout}>Selesaikan</Button>
+                            <Button onClick={finishTryout} disabled={finishing}>
+                                <div className="flex items-center gap-2">
+                                    {finishing && <Loader2 className="h-4 w-4 animate-spin" />}
+                                    Selesaikan
+                                </div>
+                            </Button>
                         </div>
                     </div>
                 </div>

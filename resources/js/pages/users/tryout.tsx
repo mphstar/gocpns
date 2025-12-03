@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Target, Timer, Info } from 'lucide-react';
-import { useState } from 'react';
+import { Target, Timer, Info, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { UserNav } from './user-nav';
 
 type TryoutItem = {
@@ -26,6 +26,8 @@ type PageProps = {
     };
     categories: Array<{ id: number; kategori: string }>;
     selectedKategoriId?: number | null;
+    jenisTryout?: Array<{ id: number; nama: string }>;
+    selectedJenisId?: number | null;
     ongoing?: Record<
         number,
         {
@@ -37,19 +39,39 @@ type PageProps = {
 };
 
 const Tryout = () => {
-    const { tryouts, categories, selectedKategoriId, ongoing = {} } = usePage<PageProps>().props;
+    const { tryouts, categories, selectedKategoriId, jenisTryout = [], selectedJenisId, ongoing = {} } = usePage<PageProps>().props;
     const [selected, setSelected] = useState<TryoutItem | null>(null);
+    const [starting, setStarting] = useState(false);
+    const [kategoriFilter, setKategoriFilter] = useState<string>(selectedKategoriId ? String(selectedKategoriId) : 'all');
+    const [jenisFilter, setJenisFilter] = useState<string>(selectedJenisId ? String(selectedJenisId) : 'all');
 
-    const onFilterChange = (kategoriId: string) => {
-        const payload = kategoriId && kategoriId !== 'all' ? { kategori_id: kategoriId } : {};
+    useEffect(() => {
+        setKategoriFilter(selectedKategoriId ? String(selectedKategoriId) : 'all');
+        setJenisFilter(selectedJenisId ? String(selectedJenisId) : 'all');
+    }, [selectedKategoriId, selectedJenisId]);
+
+    const applyFilters = (kategoriId: string, jenisId: string) => {
+        setKategoriFilter(kategoriId);
+        setJenisFilter(jenisId);
         router.get(
             route('app.tryout'),
-            payload,
+            {
+                kategori_id: kategoriId !== 'all' ? kategoriId : undefined,
+                jenis_id: jenisId !== 'all' ? jenisId : undefined,
+            },
             {
                 replace: true,
                 preserveScroll: true,
             },
         );
+    };
+
+    const handleStart = () => {
+        if (!selected) return;
+        setStarting(true);
+        router.visit(route('app.tryout.take', selected.id), {
+            onFinish: () => setStarting(false),
+        });
     };
 
     return (
@@ -73,8 +95,8 @@ const Tryout = () => {
 
                 <div className="flex items-center gap-3">
                     <Select
-                        onValueChange={onFilterChange}
-                        value={selectedKategoriId ? String(selectedKategoriId) : 'all'}
+                        onValueChange={(val) => applyFilters(val, jenisFilter)}
+                        value={kategoriFilter}
                     >
                         <SelectTrigger className="w-[220px]">
                             <SelectValue placeholder="Filter kategori" />
@@ -84,6 +106,22 @@ const Tryout = () => {
                             {categories.map((kat) => (
                                 <SelectItem key={kat.id} value={String(kat.id)}>
                                     {kat.kategori}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Select
+                        onValueChange={(val) => applyFilters(kategoriFilter, val)}
+                        value={jenisFilter}
+                    >
+                        <SelectTrigger className="w-[220px]">
+                            <SelectValue placeholder="Filter tipe soal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Tipe Soal</SelectItem>
+                            {jenisTryout.map((jenis) => (
+                                <SelectItem key={jenis.id} value={String(jenis.id)}>
+                                    {jenis.nama}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -154,10 +192,11 @@ const Tryout = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setSelected(null)}>Batal</AlertDialogCancel>
-                        <AlertDialogAction asChild>
-                            <Link href={selected ? route('app.tryout.take', selected.id) : '#'}>
+                        <AlertDialogAction onClick={handleStart} disabled={starting}>
+                            <div className="flex items-center justify-center gap-2">
+                                {starting && <Loader2 className="h-4 w-4 animate-spin" />}
                                 {selected && ongoing[selected.id] ? 'Lanjutkan' : 'Mulai Sekarang'}
-                            </Link>
+                            </div>
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
